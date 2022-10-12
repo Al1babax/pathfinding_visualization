@@ -153,8 +153,18 @@ export function Home() {
                 newGrid[node.id].onSearch = false;
                 setGrid(newGrid);
                 updateGrid();
-            }, speed * 10 * i);
+            }, speed * i);
         }
+        setTimeout(() => {
+            for (let i = 0; i <= nodesInShortestPathOrder.length; i++) {
+                setTimeout(() => {
+                    const node = nodesInShortestPathOrder[i];
+                    newGrid[node.id].isPath = true;
+                    setGrid(newGrid);
+                    updateGrid();
+                }, speed * i);
+            }
+        }, speed * (visitedNodesInOrder.length));
     }
 
     function startPathFinding() {

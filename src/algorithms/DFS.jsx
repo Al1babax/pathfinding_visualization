@@ -2,7 +2,6 @@ export function DFS(props) {
     const { grid, startNode, endNode } = props;
     const visitedNodesInOrder = []; // visited nodes in order for animation
     let searchedNodesInOrder = []; // searched nodes in order for animation
-    const nodesInShortestPathOrder = []; // nodes in shortest path for animation
 
     let algoDone = false; // flag to check if algorithm is done
 
@@ -31,19 +30,6 @@ export function DFS(props) {
         }
     }
 
-    function getNodesInShortestPathOrder() {
-        let currentNode = endNode;
-        let maxIterations = 1000;
-        while (currentNode !== null) {
-            if (maxIterations === 0) {
-                break;
-            }
-            nodesInShortestPathOrder.unshift(currentNode);
-            currentNode = currentNode.previousNode;
-            maxIterations--;
-        }
-    }
-
     function checkIfNodeIsEnd(node) {
         if (node.id === endNode.id) {
             return true;
@@ -67,12 +53,12 @@ export function DFS(props) {
             break;
         }
         if (visitedNodesInOrder.length === 1) {
-            //currentNode = stack.pop();
-            currentNode = stack.shift();
+            currentNode = stack.pop();
+            //currentNode = stack.shift();
         } else {
             prevNode = currentNode;
-            //currentNode = stack.pop(); // get last node in stack
-            currentNode = stack.shift();
+            currentNode = stack.pop(); // get last node in stack
+            //currentNode = stack.shift();
             grid[currentNode.id].previousNode = prevNode; // set previous node of current node
         }
 
@@ -91,7 +77,8 @@ export function DFS(props) {
         searchedNodesInOrder = []; // reset new nodes to search
         failSafeCounter++;
     }
-    getNodesInShortestPathOrder(); // get nodes in shortest path order
+
+    let nodesInShortestPathOrder = [...visitedNodesInOrder].reverse(); // nodes in shortest path for animation
 
     return { visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder };
 }
