@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import dropdownImage from "../recources/dropdown.png";
+import { DFS } from "../algorithms/DFS";
 
 export function Home() {
 
@@ -10,8 +12,9 @@ export function Home() {
     const [isRunning, setIsRunning] = useState(false);
     const [isPathFound, setIsPathFound] = useState(false);
     const [isPathFinding, setIsPathFinding] = useState(false);
-    const [algorithm, setAlgorithm] = useState("Deep search algorithm");
+    const [algorithm, setAlgorithm] = useState("Choose algorithm");
     const [speed, setSpeed] = useState(10);
+    const [dropdonwOpen, setDropdownOpen] = useState(false);
 
     function createGrid() {
         const grid = [];
@@ -30,10 +33,18 @@ export function Home() {
                     previousNode: null,
                     distance: Infinity,
                     color: "bg-white",
+                    isTopNode: i % 20 === 0 ? true : false,
+                    isBottomNode: i % 20 === 19 ? true : false,
+                    isLeftNode: i < 20 ? true : false,
+                    isRightNode: i > 979 ? true : false,
                 }
             )
         }
         setGrid(grid);
+    }
+
+    function reset() {
+        createGrid();
     }
 
     function handleMouseDown(id) {
@@ -113,6 +124,58 @@ export function Home() {
         setGrid(newGrid);
     }
 
+    function setAlgorithmfunc(algorithm) {
+        setAlgorithm(algorithm);
+        setDropdownOpen(false);
+    }
+
+    function setupPresetMaze() {
+        const newGrid = [...grid];
+        for (let i = 0; i < 1000; i++) {
+            if (i % 6 === 0) {
+                newGrid[i].isWall = true;
+            }
+        }
+        setGrid(newGrid);
+        updateGrid();
+    }
+
+    function animatePathFinding(visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder) {
+        const newGrid = [...grid];
+        for (let i = 0; i <= visitedNodesInOrder.length; i++) {
+            setTimeout(() => {
+                //console.log(i);
+                const node = visitedNodesInOrder[i];
+                for (let i = 0; i < node.currentStack.length; i++) {
+                    newGrid[node.currentStack[i].id].onSearch = true;
+                }
+                newGrid[node.id].isVisited = true;
+                newGrid[node.id].onSearch = false;
+                setGrid(newGrid);
+                updateGrid();
+            }, speed * 10 * i);
+        }
+    }
+
+    function startPathFinding() {
+        setIsRunning(true);
+        setIsPathFinding(true);
+        setIsPathFound(false);
+
+        const props = {
+            grid: [...grid],
+            startNode: startNode,
+            endNode: endNode,
+        }
+
+        if (algorithm === "Deep search algorithm") {
+            const {visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder} = DFS(props);
+            console.log("shortestPath", nodesInShortestPathOrder);
+            animatePathFinding(visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder);
+            //console.log(grid);
+        }
+    }
+
     if (grid.length === 0) {
         createGrid();
     }
@@ -131,14 +194,42 @@ export function Home() {
         )
     })
 
+    const algorithms = ["Deep search algorithm", "Breadth search algorithm", "Dijkstra's algorithm", "A* algorithm"];
+    let dropdownbox = [];
+    let dropdownOptions = [];
+
+    algorithms.map((algorithm, index) => {
+        dropdownOptions.push(
+            <button key={index} className='w-full h-full px-1 py-2 hover:bg-slate-400' onClick={() => setAlgorithmfunc(algorithm)}>{algorithm}</button>
+        )
+    })
+
+    dropdownbox.push(
+        <div className="box w-full absolute top-12 z-10 bg-slate-200">
+            {dropdownOptions}
+        </div>
+    )
+
+    
 
     return (
         <div className='bg-slate-600 w-full h-screen flex flex-col items-center'>
             <div className="controls w-full h-[100px] bg-slate-500">
-                <div className="flex flex-row h-full w-full justify-center items-center">
+                <div className="flex flex-row h-full w-full justify-center items-center gap-5">
                     <button className={`bg-green-500 w-[100px] h-[50px] ${selectMode === "start" ? "border-4" : ""}`} onClick={() => setSelectMode("start")}>Start</button>
                     <button className={`bg-red-500 w-[100px] h-[50px] ${selectMode === "end" ? "border-4" : ""}`} onClick={() => setSelectMode("end")}>End</button>
-                    <button className={`bg-gray-500 w-[100px] h-[50px] ${selectMode === "wall" ? "border-4" : ""}`} onClick={() => setSelectMode("wall")}>Wall</button>
+                    <button className={`bg-gray-600 w-[100px] h-[50px] ${selectMode === "wall" ? "border-4" : ""}`} onClick={() => setSelectMode("wall")}>Wall</button>
+                    <button className={`bg-blue-500 w-[100px] h-[50px] ${selectMode === "weight" ? "border-4" : ""}`} onClick={() => setSelectMode("weight")}>Weight</button>
+                    <button className={`bg-purple-500 w-[100px] h-[50px] ${selectMode === "clear" ? "border-4" : ""}`} onClick={reset}>Clear</button>
+                    <button className={`bg-yellow-500 w-[100px] h-[50px] hover:brightness-110`} onClick={startPathFinding}>Search</button>
+                    <div className="dropdown w-[200px] h-[50px] bg-slate-200 relative">
+                        <button className='dropdown w-full h-full  flex justify-center items-center' onClick={() => setDropdownOpen(!dropdonwOpen)}>
+                            <div className="option">{algorithm}</div>
+                            <img src={dropdownImage} className={`w-3 h-3 ml-1 mt-1 ${dropdonwOpen ? "rotate-180" : "rotate-0"} ease-in-out duration-300`} alt="" />
+                        </button>
+                        {dropdonwOpen ? dropdownbox : null}
+                    </div>
+                    <button className={`bg-slate-400 w-[100px] h-[50px] hover:brightness-110`} onClick={setupPresetMaze}>Preset</button>
                 </div>
             </div>
             <div className="legend w-full h-[100px] bg-slate-500"></div>
