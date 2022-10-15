@@ -5,6 +5,7 @@ import { DFS } from "../algorithms/DFS";
 export function Home() {
 
     const [grid, setGrid] = useState([]);
+    const [gridHTML, setGridHTML] = useState([]);
     const [mouseIsPressed, setMouseIsPressed] = useState(false);
     const [selectMode, setSelectMode] = useState("wall");
     const [startNode, setStartNode] = useState(null);
@@ -13,8 +14,10 @@ export function Home() {
     const [isPathFound, setIsPathFound] = useState(false);
     const [isPathFinding, setIsPathFinding] = useState(false);
     const [algorithm, setAlgorithm] = useState("Choose algorithm");
-    const [speed, setSpeed] = useState(10);
+    const [speed, setSpeed] = useState(20);
     const [dropdonwOpen, setDropdownOpen] = useState(false);
+    const [dropdownSpeedOpen, setDropdownSpeedOpen] = useState(false);
+
 
     function createGrid() {
         const grid = [];
@@ -179,30 +182,42 @@ export function Home() {
         }
 
         if (algorithm === "Deep search algorithm") {
-            const {visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder} = DFS(props);
+            const { visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder } = DFS(props);
             console.log("shortestPath", nodesInShortestPathOrder);
             animatePathFinding(visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder);
             //console.log(grid);
         }
+
+        setIsRunning(false);
+        setIsPathFinding(false);
+        setIsPathFound(false);
+    }
+
+    function handleSpeedDropdown(value) {
+        setSpeed(value);
+        setDropdownSpeedOpen(!dropdownSpeedOpen);
     }
 
     if (grid.length === 0) {
         createGrid();
     }
 
+    
     let grid_html = [];
     grid.map((node) => {
         grid_html.push(
             <button
                 key={node.id}
                 id={node.id}
-                className={`node ${node.color} w-[30px] h-[30px]`}
+                className={`node ${node.color} w-[30px] h-[30px] ease-in-out duration-[400ms] ${(mouseIsPressed | isRunning) && "hover:scale-125"} ${isRunning && "cursor-not-allowed"}`}
                 onMouseDown={() => handleMouseDown(node.id)}
                 onMouseUp={() => setMouseIsPressed(false)}
                 onMouseEnter={() => handleMouseEnter(node.id)}
             ></button>
         )
     })
+    //setGridHTML(grid_html);
+
 
     const algorithms = ["Deep search algorithm", "Breadth search algorithm", "Dijkstra's algorithm", "A* algorithm"];
     let dropdownbox = [];
@@ -220,26 +235,51 @@ export function Home() {
         </div>
     )
 
-    
+    const speedOptions = [
+        { name: "Slow", value: 50 },
+        { name: "Normal", value: 25 },
+        { name: "Fast", value: 10 },
+    ];
+    let speedDropdownOptions = [];
+    let speedDropdownbox = [];
+
+    speedOptions.map((speedOption, index) => {
+        speedDropdownOptions.push(
+            <button key={index} className='w-full h-full px-1 py-2 hover:bg-slate-400' onClick={() => handleSpeedDropdown(speedOption.value)}>{speedOption.name}</button>
+        )
+    })
+
+    speedDropdownbox.push(
+        <div className="box w-full absolute top-12 z-10 bg-slate-200">
+            {speedDropdownOptions}
+        </div>
+    )
 
     return (
         <div className='bg-slate-600 w-full h-screen flex flex-col items-center'>
             <div className="controls w-full h-[100px] bg-slate-500">
                 <div className="flex flex-row h-full w-full justify-center items-center gap-5">
-                    <button className={`bg-green-500 w-[100px] h-[50px] ${selectMode === "start" ? "border-4" : ""}`} onClick={() => setSelectMode("start")}>Start</button>
-                    <button className={`bg-red-500 w-[100px] h-[50px] ${selectMode === "end" ? "border-4" : ""}`} onClick={() => setSelectMode("end")}>End</button>
-                    <button className={`bg-gray-600 w-[100px] h-[50px] ${selectMode === "wall" ? "border-4" : ""}`} onClick={() => setSelectMode("wall")}>Wall</button>
-                    <button className={`bg-blue-500 w-[100px] h-[50px] ${selectMode === "weight" ? "border-4" : ""}`} onClick={() => setSelectMode("weight")}>Weight</button>
-                    <button className={`bg-purple-500 w-[100px] h-[50px] ${selectMode === "clear" ? "border-4" : ""}`} onClick={reset}>Clear</button>
-                    <button className={`bg-yellow-500 w-[100px] h-[50px] hover:brightness-110`} onClick={startPathFinding}>Search</button>
-                    <div className="dropdown w-[200px] h-[50px] bg-slate-200 relative">
+                    <button className={`bg-green-500 w-[100px] h-[50px] ${selectMode === "start" ? "border-4" : ""} rounded`} onClick={() => setSelectMode("start")}>Start</button>
+                    <button className={`bg-red-500 w-[100px] h-[50px] ${selectMode === "end" ? "border-4" : ""} rounded`} onClick={() => setSelectMode("end")}>End</button>
+                    <button className={`bg-gray-600 w-[100px] h-[50px] ${selectMode === "wall" ? "border-4" : ""} rounded`} onClick={() => setSelectMode("wall")}>Wall</button>
+                    <button className={`bg-blue-500 w-[100px] h-[50px] ${selectMode === "weight" ? "border-4" : ""} rounded`} onClick={() => setSelectMode("weight")}>Weight</button>
+                    <button className={`bg-purple-500 w-[100px] h-[50px] ${selectMode === "clear" ? "border-4" : ""} rounded`} onClick={reset}>Clear</button>
+                    <button className={`bg-yellow-500 w-[100px] h-[50px] hover:brightness-110 rounded`} onClick={startPathFinding}>Search</button>
+                    <div className="dropdown w-[200px] h-[50px] bg-slate-200 relative" onMouseLeave={() => setDropdownOpen(!dropdonwOpen)}>
                         <button className='dropdown w-full h-full  flex justify-center items-center' onClick={() => setDropdownOpen(!dropdonwOpen)}>
                             <div className="option">{algorithm}</div>
                             <img src={dropdownImage} className={`w-3 h-3 ml-1 mt-1 ${dropdonwOpen ? "rotate-180" : "rotate-0"} ease-in-out duration-300`} alt="" />
                         </button>
                         {dropdonwOpen ? dropdownbox : null}
                     </div>
-                    <button className={`bg-slate-400 w-[100px] h-[50px] hover:brightness-110`} onClick={setupPresetMaze}>Preset</button>
+                    <button className={`bg-slate-400 w-[100px] h-[50px] hover:brightness-110 rounded`} onClick={setupPresetMaze}>Preset</button>
+                    <div className="dropdown w-[120px] h-[50px] bg-slate-200 relative" onMouseLeave={() => setDropdownSpeedOpen(!dropdownSpeedOpen)}>
+                        <button className='dropdown w-full h-full  flex justify-center items-center' onClick={() => setDropdownSpeedOpen(!dropdownSpeedOpen)}>
+                            <div className="option">Speed: {speed}</div>
+                            <img src={dropdownImage} className={`w-3 h-3 ml-1 mt-1 ${dropdownSpeedOpen ? "rotate-180" : "rotate-0"} ease-in-out duration-300`} alt="" />
+                        </button>
+                        {dropdownSpeedOpen ? speedDropdownbox : null}
+                    </div>
                 </div>
             </div>
             <div className="legend w-full h-[100px] bg-slate-500"></div>
