@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import dropdownImage from "../recources/dropdown.png";
 import { DFS } from "../algorithms/DFS";
+import { BFS } from "../algorithms/BFS";
+import { Dijkstra } from "../algorithms/Dijkstra";
+import { Astar } from "../algorithms/Astar";
 
 export function Home() {
 
@@ -158,6 +161,9 @@ export function Home() {
                 updateGrid();
             }, speed * i);
         }
+        if (nodesInShortestPathOrder.length === null) {
+            return
+        }
         setTimeout(() => {
             for (let i = 0; i <= nodesInShortestPathOrder.length; i++) {
                 setTimeout(() => {
@@ -168,6 +174,41 @@ export function Home() {
                 }, speed * i);
             }
         }, speed * (visitedNodesInOrder.length));
+    }
+
+    function betterAnimate(visitedNodesInOrder, searchedNodesInOrder) {
+        const newGrid = [...grid];
+        for (let i = 0; i < visitedNodesInOrder.length; i++) {
+            setTimeout(() => {
+                for (let x = 0; x < searchedNodesInOrder[i].length; x++) {
+                    newGrid[searchedNodesInOrder[i][x].id].onSearch = true;
+                }
+                const node = visitedNodesInOrder[i];
+                newGrid[node.id].isVisited = true;
+                newGrid[node.id].onSearch = false;
+                setGrid(newGrid);
+                updateGrid();
+            }, speed * i);
+        }
+        // updating all distances and prev nodes from visitedNodesInOrder to grid
+        for (let i = 0; i < visitedNodesInOrder.length; i++) {
+            const node = visitedNodesInOrder[i];
+            newGrid[node.id].distance = node.distance;
+            newGrid[node.id].prevNode = node.prevNode;
+        }
+        setGrid(newGrid);
+        let prevNode = visitedNodesInOrder.pop();
+        for (let i = 0; i < visitedNodesInOrder[visitedNodesInOrder.length - 1].distance; i++) {
+            setTimeout(() => {
+                console.log(prevNode)
+                newGrid[prevNode.id].isPath = true;
+                newGrid[prevNode.id].isVisited = false;
+                setGrid(newGrid);
+                updateGrid();
+                console.log(prevNode.previousNode)
+                prevNode = grid[prevNode.previousNode];
+            }, speed * (i * 2 + visitedNodesInOrder.length));
+        }
     }
 
     function startPathFinding() {
@@ -186,7 +227,21 @@ export function Home() {
             console.log("shortestPath", nodesInShortestPathOrder);
             animatePathFinding(visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder);
             //console.log(grid);
+        } else if (algorithm === "Breadth search algorithm") {
+            const { visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder } = BFS(props);
+            console.log("shortestPath", nodesInShortestPathOrder);
+            animatePathFinding(visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder);
+        } else if (algorithm === "Dijkstra's algorithm") {
+            console.log("Dijkstra's algorithm");
+            const { visitedNodesInOrder, searchedNodesInOrder } = Dijkstra(props);
+            console.log("visitedNodesInOrder", visitedNodesInOrder);
+            betterAnimate(visitedNodesInOrder, searchedNodesInOrder);
+        } else if (algorithm === "A* algorithm") {
+            const { visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder } = Astar(props);
+            console.log("shortestPath", nodesInShortestPathOrder);
+            animatePathFinding(visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder);
         }
+
 
         setIsRunning(false);
         setIsPathFinding(false);
@@ -202,7 +257,7 @@ export function Home() {
         createGrid();
     }
 
-    
+
     let grid_html = [];
     grid.map((node) => {
         grid_html.push(
