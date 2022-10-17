@@ -1,11 +1,9 @@
 export function Dijkstra(props) {
     const { grid, startNode, endNode } = props;
     const visitedNodesInOrder = [];
-    startNode.distance = 0;
     const unvisitedNodes = [];
     let searchedNodesInOrder = [];
-    //TODO: make dijkstra algorithm
-    let currentNode = startNode;
+
 
     function getUnvisitedNeighbors(node) {
         // add neighbors to array if they are not visited and not a wall in order of up, right, down, left
@@ -37,25 +35,25 @@ export function Dijkstra(props) {
         unvisitedNodes.sort((nodeA, nodeB) => nodeA.distance - nodeB.distance);
     }
 
+    // setup first node here
+    startNode.distance = 0;
+    let currentNode = startNode;
     let unvisitedNeighbors = getUnvisitedNeighbors(currentNode);
     unvisitedNodes.push(...unvisitedNeighbors);
 
-    let counter = 0
-    let secondToLastNode = null
+    let counter = 0 // failsafe
     while (unvisitedNodes.length > 0 | counter > 1000) {
         sortNodesByDistance(unvisitedNodes);
         //console.log(visitedNodesInOrder)
-        secondToLastNode = currentNode
         currentNode = unvisitedNodes.shift(); 
         currentNode.isVisited = true;
         const unvisitedNeighbors = getUnvisitedNeighbors(currentNode);
-        if (currentNode === endNode) { // need to setup prev node when the prev node neighbour is the end node otherwise it will not work
-            currentNode.previousNode = secondToLastNode.id
-        }
-        visitedNodesInOrder.push(currentNode);
-        if (currentNode === endNode) {
+        if (unvisitedNeighbors.includes(endNode)) { // check if endNode is within the unvisited neighbors
+            endNode.previousNode = currentNode.id
+            visitedNodesInOrder.push(endNode)
             break;
         }
+        visitedNodesInOrder.push(currentNode);
         for (const neighbor of unvisitedNeighbors) {
             unvisitedNodes.push(neighbor);
         }

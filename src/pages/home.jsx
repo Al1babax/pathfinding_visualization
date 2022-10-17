@@ -4,11 +4,11 @@ import { DFS } from "../algorithms/DFS";
 import { BFS } from "../algorithms/BFS";
 import { Dijkstra } from "../algorithms/Dijkstra";
 import { Astar } from "../algorithms/Astar";
+import { MazeGenerator } from "../algorithms/MazeGenerator";
 
 export function Home() {
 
     const [grid, setGrid] = useState([]);
-    const [gridHTML, setGridHTML] = useState([]);
     const [mouseIsPressed, setMouseIsPressed] = useState(false);
     const [selectMode, setSelectMode] = useState("wall");
     const [startNode, setStartNode] = useState(null);
@@ -17,7 +17,7 @@ export function Home() {
     const [isPathFound, setIsPathFound] = useState(false);
     const [isPathFinding, setIsPathFinding] = useState(false);
     const [algorithm, setAlgorithm] = useState("Choose algorithm");
-    const [speed, setSpeed] = useState(200);
+    const [speed, setSpeed] = useState(5);
     const [dropdonwOpen, setDropdownOpen] = useState(false);
     const [dropdownSpeedOpen, setDropdownSpeedOpen] = useState(false);
 
@@ -53,6 +53,7 @@ export function Home() {
     function reset() {
         createGrid();
     }
+
 
     function handleMouseDown(id) {
         setMouseIsPressed(true);
@@ -91,12 +92,13 @@ export function Home() {
                 setEndNode(null);
             }
         } else if (selectMode === "wall" && !node.isStart && !node.isEnd) {
-            node.isWall = true;
+            node.isWall = !node.isWall;
             node.color = "bg-gray-500";
         }
         setGrid(newGrid);
         updateGrid();
     }
+
 
     function handleMouseEnter(id) {
         if (!mouseIsPressed) return;
@@ -109,6 +111,7 @@ export function Home() {
         updateGrid();
     }
 
+
     function updateGrid() {
         const newGrid = [...grid];
         newGrid.forEach(node => {
@@ -119,9 +122,9 @@ export function Home() {
             } else if (node.isWall) {
                 node.color = "bg-gray-500";
             } else if (node.isPath) {
-                node.color = "bg-blue-500";
+                node.color = "bg-blue-700";
             } else if (node.onSearch) {
-                node.color = "bg-yellow-500";
+                node.color = "bg-yellow-400";
             } else if (node.isVisited) {
                 node.color = "bg-purple-500";
             } else {
@@ -131,10 +134,12 @@ export function Home() {
         setGrid(newGrid);
     }
 
+
     function setAlgorithmfunc(algorithm) {
         setAlgorithm(algorithm);
         setDropdownOpen(false);
     }
+
 
     function setupPresetMaze() {
         const newGrid = [...grid];
@@ -146,6 +151,15 @@ export function Home() {
         setGrid(newGrid);
         updateGrid();
     }
+
+
+    function generateMaze() {
+        const newGrid = [...grid];
+        const maze = MazeGenerator(newGrid);
+        setGrid(maze);
+        updateGrid();
+    }
+
 
     function animatePathFinding(visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder) {
         const newGrid = [...grid];
@@ -177,13 +191,12 @@ export function Home() {
         }, speed * (visitedNodesInOrder.length));
     }
 
+
     function betterAnimate(visitedNodesInOrder, searchedNodesInOrder) {
-        //console.log("searchedNodesInOrder", searchedNodesInOrder);
         const newGrid = [...grid];
         for (let i = 0; i < visitedNodesInOrder.length; i++) {
             setTimeout(() => {
                 for (let x = 0; x < searchedNodesInOrder[i].length; x++) {
-                    console.log(i, searchedNodesInOrder[i][x].id);
                     newGrid[searchedNodesInOrder[i][x].id].onSearch = true;
                 }
                 const node = visitedNodesInOrder[i];
@@ -201,18 +214,17 @@ export function Home() {
         }
         setGrid(newGrid);
         let prevNode = visitedNodesInOrder.pop();
-        for (let i = 0; i < visitedNodesInOrder[visitedNodesInOrder.length - 1].distance; i++) {
+        for (let i = 0; i <= visitedNodesInOrder[visitedNodesInOrder.length - 1].distance; i++) {
             setTimeout(() => {
-                console.log(prevNode)
                 newGrid[prevNode.id].isPath = true;
                 newGrid[prevNode.id].isVisited = false;
                 setGrid(newGrid);
                 updateGrid();
-                console.log(prevNode.previousNode)
                 prevNode = grid[prevNode.previousNode];
             }, speed * (i * 2 + visitedNodesInOrder.length));
         }
     }
+
 
     function startPathFinding() {
         setIsRunning(true);
@@ -227,18 +239,13 @@ export function Home() {
 
         if (algorithm === "Deep search algorithm") {
             const { visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder } = DFS(props);
-            console.log("shortestPath", nodesInShortestPathOrder);
             animatePathFinding(visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder);
-            //console.log(grid);
         } else if (algorithm === "Breadth search algorithm") {
             const { visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder } = BFS(props);
             console.log("shortestPath", nodesInShortestPathOrder);
             animatePathFinding(visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder);
         } else if (algorithm === "Dijkstra's algorithm") {
-            console.log("Dijkstra's algorithm");
             const { visitedNodesInOrder, searchedNodesInOrder } = Dijkstra(props);
-            console.log("visitedNodesInOrder", visitedNodesInOrder);
-            console.log("searchedNodesInOrder", searchedNodesInOrder);
             betterAnimate(visitedNodesInOrder, searchedNodesInOrder);
         } else if (algorithm === "A* algorithm") {
             const { visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder } = Astar(props);
@@ -252,6 +259,7 @@ export function Home() {
         setIsPathFound(false);
     }
 
+
     function handleSpeedDropdown(value) {
         setSpeed(value);
         setDropdownSpeedOpen(!dropdownSpeedOpen);
@@ -260,7 +268,6 @@ export function Home() {
     if (grid.length === 0) {
         createGrid();
     }
-
 
     let grid_html = [];
     grid.map((node) => {
@@ -276,7 +283,6 @@ export function Home() {
         )
     })
     //setGridHTML(grid_html);
-
 
     const algorithms = ["Deep search algorithm", "Breadth search algorithm", "Dijkstra's algorithm", "A* algorithm"];
     let dropdownbox = [];
@@ -325,24 +331,53 @@ export function Home() {
                     <button className={`bg-blue-500 w-[100px] h-[50px] ${selectMode === "weight" ? "border-4" : ""} rounded`} onClick={() => setSelectMode("weight")}>Weight</button>
                     <button className={`bg-purple-500 w-[100px] h-[50px] ${selectMode === "clear" ? "border-4" : ""} rounded`} onClick={reset}>Clear</button>
                     <button className={`bg-yellow-500 w-[100px] h-[50px] hover:brightness-110 rounded`} onClick={startPathFinding}>Search</button>
-                    <div className="dropdown w-[200px] h-[50px] bg-slate-200 relative" onMouseLeave={() => setDropdownOpen(!dropdonwOpen)}>
+                    <div className="dropdown w-[200px] h-[50px] bg-slate-200 relative" onMouseLeave={() => setDropdownOpen(false)}>
                         <button className='dropdown w-full h-full  flex justify-center items-center' onClick={() => setDropdownOpen(!dropdonwOpen)}>
                             <div className="option">{algorithm}</div>
-                            <img src={dropdownImage} className={`w-3 h-3 ml-1 mt-1 ${dropdonwOpen ? "rotate-180" : "rotate-0"} ease-in-out duration-300`} alt="" />
+                            <img src={dropdownImage} className={`w-3 h-2 ml-1 mt-1 ${dropdonwOpen ? "rotate-180" : "rotate-0"} ease-in-out duration-300`} alt="" />
                         </button>
                         {dropdonwOpen ? dropdownbox : null}
                     </div>
                     <button className={`bg-slate-400 w-[100px] h-[50px] hover:brightness-110 rounded`} onClick={setupPresetMaze}>Preset</button>
-                    <div className="dropdown w-[120px] h-[50px] bg-slate-200 relative" onMouseLeave={() => setDropdownSpeedOpen(!dropdownSpeedOpen)}>
+                    <div className="dropdown w-[120px] h-[50px] bg-slate-200 relative" onMouseLeave={() => setDropdownSpeedOpen(false)}>
                         <button className='dropdown w-full h-full  flex justify-center items-center' onClick={() => setDropdownSpeedOpen(!dropdownSpeedOpen)}>
                             <div className="option">Speed: {speed}</div>
-                            <img src={dropdownImage} className={`w-3 h-3 ml-1 mt-1 ${dropdownSpeedOpen ? "rotate-180" : "rotate-0"} ease-in-out duration-300`} alt="" />
+                            <img src={dropdownImage} className={`w-3 h-2 ml-1 mt-1 ${dropdownSpeedOpen ? "rotate-180" : "rotate-0"} ease-in-out duration-300`} alt="" />
                         </button>
                         {dropdownSpeedOpen ? speedDropdownbox : null}
                     </div>
+                    <button className={`bg-slate-400 w-[200px] h-[50px] hover:brightness-110 rounded`} onClick={generateMaze}>Generate random maze</button>
                 </div>
             </div>
-            <div className="legend w-full h-[100px] bg-slate-500"></div>
+            <div className="line bg-black h-1"></div>
+            <div className="legend w-full h-[100px] bg-slate-500 flex justify-center items-center">
+                <div className="border-2 w-[1000px] h-[50px] bg-slate-400 flex justify-center items-center rounded-sm">
+                    <div className="path flex w-[200px] h-[50px] justify-center items-center gap-3 ">
+                        <div className="path__node bg-green-500 w-[30px] h-[30px] rounded"></div>
+                        <p>Start</p>
+                    </div>
+                    <div className="path flex w-[200px] h-[50px] justify-center items-center gap-3 ">
+                        <div className="path__node bg-red-500 w-[30px] h-[30px] rounded"></div>
+                        <p>End</p>
+                    </div>
+                    <div className="path flex w-[200px] h-[50px] justify-center items-center gap-3">
+                        <div className="path__node bg-gray-500 w-[30px] h-[30px] rounded"></div>
+                        <p>Wall</p>
+                    </div>
+                    <div className="path flex w-[200px] h-[50px] justify-center items-center gap-3 ">
+                        <div className="path__node bg-blue-700 w-[30px] h-[30px] rounded"></div>
+                        <p>Shortest path</p>
+                    </div>
+                    <div className="path flex w-[200px] h-[50px] justify-center items-center gap-3 ">
+                        <div className="path__node bg-purple-500 w-[30px] h-[30px] rounded"></div>
+                        <p>Visited node</p>
+                    </div>
+                    <div className="path flex w-[200px] h-[50px] justify-center items-center gap-3 ">
+                        <div className="path__node bg-yellow-400 w-[30px] h-[30px] rounded"></div>
+                        <p>Next to visit</p>
+                    </div>
+                </div>
+            </div>
             <div className="grid grid-rows-20 grid-flow-col gap-[3px] bg-gray-400 mt-10" onMouseLeave={() => setMouseIsPressed(false)}>
                 {true && grid_html}
             </div>
