@@ -17,7 +17,7 @@ export function Home() {
     const [isPathFound, setIsPathFound] = useState(false);
     const [isPathFinding, setIsPathFinding] = useState(false);
     const [algorithm, setAlgorithm] = useState("Choose algorithm");
-    const [speed, setSpeed] = useState(20);
+    const [speed, setSpeed] = useState(200);
     const [dropdonwOpen, setDropdownOpen] = useState(false);
     const [dropdownSpeedOpen, setDropdownSpeedOpen] = useState(false);
 
@@ -48,6 +48,7 @@ export function Home() {
         }
         setGrid(grid);
     }
+
 
     function reset() {
         createGrid();
@@ -177,10 +178,12 @@ export function Home() {
     }
 
     function betterAnimate(visitedNodesInOrder, searchedNodesInOrder) {
+        //console.log("searchedNodesInOrder", searchedNodesInOrder);
         const newGrid = [...grid];
         for (let i = 0; i < visitedNodesInOrder.length; i++) {
             setTimeout(() => {
                 for (let x = 0; x < searchedNodesInOrder[i].length; x++) {
+                    console.log(i, searchedNodesInOrder[i][x].id);
                     newGrid[searchedNodesInOrder[i][x].id].onSearch = true;
                 }
                 const node = visitedNodesInOrder[i];
@@ -194,7 +197,7 @@ export function Home() {
         for (let i = 0; i < visitedNodesInOrder.length; i++) {
             const node = visitedNodesInOrder[i];
             newGrid[node.id].distance = node.distance;
-            newGrid[node.id].prevNode = node.prevNode;
+            newGrid[node.id].previousNode = node.previousNode;
         }
         setGrid(newGrid);
         let prevNode = visitedNodesInOrder.pop();
@@ -235,6 +238,7 @@ export function Home() {
             console.log("Dijkstra's algorithm");
             const { visitedNodesInOrder, searchedNodesInOrder } = Dijkstra(props);
             console.log("visitedNodesInOrder", visitedNodesInOrder);
+            console.log("searchedNodesInOrder", searchedNodesInOrder);
             betterAnimate(visitedNodesInOrder, searchedNodesInOrder);
         } else if (algorithm === "A* algorithm") {
             const { visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder } = Astar(props);
@@ -309,6 +313,7 @@ export function Home() {
             {speedDropdownOptions}
         </div>
     )
+
 
     return (
         <div className='bg-slate-600 w-full h-screen flex flex-col items-center'>
