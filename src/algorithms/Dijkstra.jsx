@@ -40,12 +40,13 @@ export function Dijkstra(props) {
     let currentNode = startNode;
     let unvisitedNeighbors = getUnvisitedNeighbors(currentNode);
     unvisitedNodes.push(...unvisitedNeighbors);
+    visitedNodesInOrder.push(currentNode);
 
     let counter = 0 // failsafe
     while (unvisitedNodes.length > 0 | counter > 1000) {
         sortNodesByDistance(unvisitedNodes);
         //console.log(visitedNodesInOrder)
-        currentNode = unvisitedNodes.shift(); 
+        currentNode = unvisitedNodes.shift();
         currentNode.isVisited = true;
         const unvisitedNeighbors = getUnvisitedNeighbors(currentNode);
         if (unvisitedNeighbors.includes(endNode)) { // check if endNode is within the unvisited neighbors

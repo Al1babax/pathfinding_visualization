@@ -1,5 +1,9 @@
 export function MazeGenerator(Grid) {
-    const newGrid = [...Grid];
+    // Create a new grid
+    const newGrid = Grid.slice();
+
+    // setup isVisited array for animation
+    const visitedInOrder = [];
 
     // initialize the newGrid
     for (let i = 0; i < newGrid.length; i++) {
@@ -59,6 +63,7 @@ export function MazeGenerator(Grid) {
         // remove the wall between two nodes
         newGrid[node.id].isWall = false;
         newGrid[node.id].isVisited = true;
+        visitedInOrder.push(node);
     }
 
 
@@ -66,6 +71,7 @@ export function MazeGenerator(Grid) {
     const start = newGrid[0];
     start.isVisited = true;
     start.isWall = false;
+    visitedInOrder.push(start);
 
     // initialize the maze
     const maze = [];
@@ -106,6 +112,6 @@ export function MazeGenerator(Grid) {
         newGrid[i].isVisited = false;
     }
 
-    return newGrid;
+    return visitedInOrder;
 
 }

@@ -10,7 +10,7 @@ export function Home() {
 
     const [grid, setGrid] = useState([]);
     const [mouseIsPressed, setMouseIsPressed] = useState(false);
-    const [selectMode, setSelectMode] = useState("wall");
+    const [selectMode, setSelectMode] = useState("start");
     const [startNode, setStartNode] = useState(null);
     const [endNode, setEndNode] = useState(null);
     const [isRunning, setIsRunning] = useState(false);
@@ -51,7 +51,23 @@ export function Home() {
 
 
     function reset() {
-        createGrid();
+        const newGrid = grid.slice();
+        for (let i = 0; i < newGrid.length; i++) {
+            newGrid[i].isWall = false;
+            newGrid[i].isVisited = false;
+            newGrid[i].isPath = false;
+            newGrid[i].onSearch = false;
+            newGrid[i].previousNode = null;
+            newGrid[i].distance = Infinity;
+            newGrid[i].color = "bg-white";
+            newGrid[i].isStart = false;
+            newGrid[i].isEnd = false;
+        }
+        setGrid(newGrid);
+        setIsRunning(false);
+        setIsPathFound(false);
+        setIsPathFinding(false);
+        updateGrid();
     }
 
 
@@ -154,10 +170,20 @@ export function Home() {
 
 
     function generateMaze() {
+        reset();
         const newGrid = [...grid];
-        const maze = MazeGenerator(newGrid);
-        setGrid(maze);
-        updateGrid();
+        const visitedInOrder = MazeGenerator(newGrid);
+        for (let i = 0; i < grid.length; i++) {
+            newGrid[i].isWall = true;
+        }
+        for (let i = 0; i < visitedInOrder.length; i++) {
+            setTimeout(() => {
+                const node = visitedInOrder[i];
+                newGrid[node.id].isWall = false;
+                setGrid(newGrid);
+                updateGrid();
+            }, i * speed / 4);
+        }
     }
 
 
