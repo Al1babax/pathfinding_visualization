@@ -20,6 +20,9 @@ export function Home() {
     const [speed, setSpeed] = useState(5);
     const [dropdonwOpen, setDropdownOpen] = useState(false);
     const [dropdownSpeedOpen, setDropdownSpeedOpen] = useState(false);
+    const [shortestPathLength, setShortestPathLength] = useState(0);
+    const [visitedNodes, setVisitedNodes] = useState(0);
+    const [searchedNodes, setSearchedNodes] = useState(0);
 
 
     function createGrid() {
@@ -68,6 +71,7 @@ export function Home() {
         setIsRunning(false);
         setIsPathFound(false);
         setIsPathFinding(false);
+        setShortestPathLength(0);
         updateGrid();
     }
 
@@ -253,6 +257,40 @@ export function Home() {
     }
 
 
+    function bestAnimate(visitedNodesInOrder, shortestPathInOrder, onSearchNodesInOrder) {
+        // reset node coloring to default in grid
+        for (let i = 0; i < grid.length; i++) {
+            grid[i].isVisited = false;
+            grid[i].isPath = false;
+            grid[i].onSearch = false;
+        }
+        const newGrid = [...grid];
+        for (let i = 0; i < visitedNodesInOrder.length; i++) {
+            setTimeout(() => {
+                for (let x = 0; x < onSearchNodesInOrder[i].length; x++) {
+                    setSearchedNodes(prev => prev + 1);
+                    newGrid[onSearchNodesInOrder[i][x].id].onSearch = true;
+                }
+                const node = visitedNodesInOrder[i];
+                newGrid[node.id].isVisited = true;
+                newGrid[node.id].onSearch = false;
+                setVisitedNodes(prev => prev + 1)
+                setGrid(newGrid);
+                updateGrid();
+            }, speed * i);
+        }
+        for (let i = 0; i < shortestPathInOrder.length; i++) {
+            setTimeout(() => {
+                const node = shortestPathInOrder[i];
+                newGrid[node.id].isPath = true;
+                setShortestPathLength(prev => prev + 1);
+                setGrid(newGrid);
+                updateGrid();
+            }, speed * (i + visitedNodesInOrder.length));
+        }
+    }
+
+
     function startPathFinding() {
         setIsRunning(true);
         setIsPathFinding(true);
@@ -263,6 +301,7 @@ export function Home() {
             startNode: startNode,
             endNode: endNode,
         }
+
 
         if (algorithm === "Deep search algorithm") {
             const { visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder } = DFS(props);
@@ -275,10 +314,11 @@ export function Home() {
             const { visitedNodesInOrder, searchedNodesInOrder } = Dijkstra(props);
             betterAnimate(visitedNodesInOrder, searchedNodesInOrder);
         } else if (algorithm === "A* algorithm") {
-            const { visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder } = Astar(props);
-            console.log("shortestPath", nodesInShortestPathOrder);
+            const { visitedNodesInOrder, shortestPathInOrder, onSearchNodesInOrder } = Astar(props);
+            console.log("shortestPath", shortestPathInOrder);
             console.log("visitedNodesInOrder", visitedNodesInOrder);
-            console.log("searchedNodesInOrder", searchedNodesInOrder);
+            console.log("onSearchNodesInOrder", onSearchNodesInOrder);
+            bestAnimate(visitedNodesInOrder, shortestPathInOrder, onSearchNodesInOrder);
         }
 
 
@@ -378,7 +418,7 @@ export function Home() {
                 </div>
             </div>
             <div className="line bg-black h-1"></div>
-            <div className="legend w-full h-[100px] bg-slate-500 flex justify-center items-center">
+            <div className="legend w-full h-[120px] bg-slate-500 flex flex-col justify-center items-center">
                 <div className="border-2 w-[1000px] h-[50px] bg-slate-400 flex justify-center items-center rounded-sm">
                     <div className="path flex w-[200px] h-[50px] justify-center items-center gap-3 ">
                         <div className="path__node bg-green-500 w-[30px] h-[30px] rounded"></div>
@@ -405,6 +445,24 @@ export function Home() {
                         <p>Next to visit</p>
                     </div>
                 </div>
+                <div className="metrics flex">
+                    <div className="path flex w-[200px] h-[50px] justify-center items-center gap-3 ">
+                        <div className="path__node bg-blue-700 w-[30px] h-[30px] rounded"></div>
+                        <p className='text-blue-300 text-xl font-bold'>=</p>
+                        <p className='text-blue-300 text-xl font-bold'>{shortestPathLength}</p>
+                    </div>
+                    <div className="path flex w-[200px] h-[50px] justify-center items-center gap-3 ">
+                        <div className="path__node bg-purple-500 w-[30px] h-[30px] rounded"></div>
+                        <p className='text-purple-400 text-xl font-bold'>=</p>
+                        <p className='text-purple-400 text-xl font-bold'>{visitedNodes}</p>
+                    </div>
+                    <div className="path flex w-[200px] h-[50px] justify-center items-center gap-3 ">
+                        <div className="path__node bg-yellow-400 w-[30px] h-[30px] rounded"></div>
+                        <p className='text-yellow-500 text-xl font-bold'>=</p>
+                        <p className='text-yellow-500 text-xl font-bold'>{searchedNodes}</p>
+                    </div>
+                </div>
+
             </div>
             <div className="grid grid-rows-20 grid-flow-col gap-[3px] bg-gray-400 mt-10" onMouseLeave={() => setMouseIsPressed(false)}>
                 {true && grid_html}

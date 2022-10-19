@@ -17,6 +17,8 @@ The project currently supports the following algorithms:
 * Dijkstra
 * A*
 
+Maze is generated using Prism's algorithm.
+
 ## TODO
 * Add more algorithms
 * Add more features
