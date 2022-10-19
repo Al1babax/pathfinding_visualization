@@ -1,0 +1,1 @@
+// maybe make a function that returns the neighbours of a node, and then use that function in the other functions

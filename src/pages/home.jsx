@@ -38,6 +38,7 @@ export function Home() {
                     weight: 1,
                     previousNode: null,
                     distance: Infinity,
+                    totalDistance: Infinity, // for Astar
                     color: "bg-white",
                     isTopNode: i % 20 === 0 ? true : false,
                     isBottomNode: i % 20 === 19 ? true : false,
@@ -276,7 +277,8 @@ export function Home() {
         } else if (algorithm === "A* algorithm") {
             const { visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder } = Astar(props);
             console.log("shortestPath", nodesInShortestPathOrder);
-            animatePathFinding(visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder);
+            console.log("visitedNodesInOrder", visitedNodesInOrder);
+            console.log("searchedNodesInOrder", searchedNodesInOrder);
         }
 
 
