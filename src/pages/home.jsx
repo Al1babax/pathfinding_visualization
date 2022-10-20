@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import dropdownImage from "../recources/dropdown.png";
+import weightImage from "../recources/weight.png";
 import { DFS } from "../algorithms/DFS";
 import { BFS } from "../algorithms/BFS";
 import { Dijkstra } from "../algorithms/Dijkstra";
@@ -14,8 +15,6 @@ export function Home() {
     const [startNode, setStartNode] = useState(null);
     const [endNode, setEndNode] = useState(null);
     const [isRunning, setIsRunning] = useState(false);
-    const [isPathFound, setIsPathFound] = useState(false);
-    const [isPathFinding, setIsPathFinding] = useState(false);
     const [algorithm, setAlgorithm] = useState("Choose algorithm");
     const [speed, setSpeed] = useState(10);
     const [dropdonwOpen, setDropdownOpen] = useState(false);
@@ -23,6 +22,7 @@ export function Home() {
     const [shortestPathLength, setShortestPathLength] = useState(0);
     const [visitedNodes, setVisitedNodes] = useState(0);
     const [searchedNodes, setSearchedNodes] = useState(0);
+    const [isHelpOpen, setIsHelpOpen] = useState(false);
 
 
     function createGrid() {
@@ -37,7 +37,7 @@ export function Home() {
                     isVisited: false,   // nodes that algorithm has visited
                     onSearch: false, // nodes that algo will search next
                     isPath: false,  // final path when algo is done
-                    isWeight: false,
+                    isWeight: false, // will cause the algo to search nodes with this weight slower
                     weight: 1,
                     previousNode: null,
                     distance: Infinity,
@@ -66,11 +66,10 @@ export function Home() {
             newGrid[i].color = "bg-white";
             newGrid[i].isStart = false;
             newGrid[i].isEnd = false;
+            newGrid[i].isWeight = false;
         }
         setGrid(newGrid);
         setIsRunning(false);
-        setIsPathFound(false);
-        setIsPathFinding(false);
         setShortestPathLength(0);
         setVisitedNodes(0);
         setSearchedNodes(0);
@@ -117,6 +116,9 @@ export function Home() {
         } else if (selectMode === "wall" && !node.isStart && !node.isEnd) {
             node.isWall = !node.isWall;
             node.color = "bg-gray-500";
+        } else if (selectMode === "weight" && !node.isStart && !node.isEnd) {
+            node.isWeight = !node.isWeight;
+            node.color = "bg-blue-500";
         }
         setGrid(newGrid);
         updateGrid();
@@ -150,6 +152,8 @@ export function Home() {
                 node.color = "bg-yellow-400";
             } else if (node.isVisited) {
                 node.color = "bg-purple-500";
+            } else if (node.isWeight) {
+                node.color = "bg-blue-500";
             } else {
                 node.color = "bg-white";
             }
@@ -261,8 +265,6 @@ export function Home() {
 
     function startPathFinding() {
         setIsRunning(true);
-        setIsPathFinding(true);
-        setIsPathFound(false);
 
         const props = {
             grid: [...grid],
@@ -270,14 +272,29 @@ export function Home() {
             endNode: endNode,
         }
 
+        // check that start and end node have been selected
+        if (startNode === null || endNode === null) {
+            setIsRunning(false);
+            return;
+        }
+
+        // removing weights from the grid if these algorithms are selected
+        if (algorithm == "Deep search algorithm" | algorithm === "Breadth search algorithm") {
+            const newGrid = [...grid];
+            for (let i = 0; i < newGrid.length; i++) {
+                newGrid[i].isWeight = false;
+            }
+            setGrid(newGrid);
+            updateGrid();
+        }
+
 
         if (algorithm === "Deep search algorithm") {
             const { visitedNodesInOrder, shortestPathInOrder, searchedNodesInOrder } = DFS(props);
             bestAnimate(visitedNodesInOrder, shortestPathInOrder, searchedNodesInOrder);
         } else if (algorithm === "Breadth search algorithm") {
-            const { visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder } = BFS(props);
-            console.log("shortestPath", nodesInShortestPathOrder);
-            animatePathFinding(visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder);
+            const { visitedNodesInOrder, shortestPathInOrder, onSearchNodesInOrder } = BFS(props);
+            bestAnimate(visitedNodesInOrder, shortestPathInOrder, onSearchNodesInOrder);
         } else if (algorithm === "Dijkstra's algorithm") {
             const { visitedNodesInOrder, shortestPathInOrder, searchedNodesInOrder } = Dijkstra(props);
             // betterAnimate(visitedNodesInOrder, searchedNodesInOrder);
@@ -287,10 +304,7 @@ export function Home() {
             bestAnimate(visitedNodesInOrder, shortestPathInOrder, onSearchNodesInOrder);
         }
 
-
         setIsRunning(false);
-        setIsPathFinding(false);
-        setIsPathFound(false);
     }
 
 
@@ -298,6 +312,52 @@ export function Home() {
         setSpeed(value);
         setDropdownSpeedOpen(!dropdownSpeedOpen);
     }
+
+    function handleWeightClick() {
+        if (algorithm == "Deep search algorithm" | algorithm === "Breadth search algorithm") {
+            return null;
+        }
+        setSelectMode("weight");
+    }
+
+
+    const helpHtml = (
+        <div className="absolute top-[20px] left-1/4 w-[1000px] h-[900px] bg-slate-300 rounded-xl z-10 overflow-hidden">
+            <div className="close w-full flex justify-end bg-red-0">
+                <button className='w-24 h-14 bg-slate-400 rounded-md mt-3 mr-3' onClick={() => setIsHelpOpen(false)}>Close</button>
+            </div>
+            <div className="area w-full h-full flex justify-center">
+                <div className="content w-5/6 h-5/6 bg-red-0">
+                    <h1 className='text-center font-bold text-3xl'>Introductions</h1>
+                    <p className='text-xl pt-3'>This is a pathfinding visualizer. It is used to visualize different pathfinding algorithms. The algorithms are implemented in JavaScript. The visualizer is built with React.js and Tailwind CSS.</p>
+                    <h1 className='font-bold text-2xl mt-10'>How to use</h1>
+                    <ol className='list-decimal'>
+                        <li className='text-xl pt-3 ml-8'>Place start node by first selecting Start.</li>
+                        <li className='text-xl pt-3 ml-8'>Place end node by selecting End.</li>
+                        <li className='text-xl pt-3 ml-8'>You can place walls selecting wall OR use auto generator for walls by pressing Generate random maze.</li>
+                        <li className='text-xl pt-3 ml-8'>(OPTIONAL) You can also place weights which will act as obstacles by counting each node as 5. (Weights only work for some algorithms.)</li>
+                        <li className='text-xl pt-3 ml-8'>Select algorithm from dropdown menu.</li>
+                        <li className='text-xl pt-3 ml-8'>Press Start to start the algorithm.</li>
+                    </ol>
+                    <p className='text-xl pt-3 ml-3'>You can also change speed from dropdown menu.</p>
+                    <h1 className='font-bold text-2xl mt-10'>Algorithms</h1>
+                    <ol className='list-decimal'>
+                        <li className='text-xl pt-3 ml-8'>Deep search algorithm</li>
+                        <li className='text-xl pt-3 ml-8'>Breadth search algorithm</li>
+                        <li className='text-xl pt-3 ml-8'>Dijkstra's algorithm</li>
+                        <li className='text-xl pt-3 ml-8'>A* algorithm</li>
+                    </ol>
+                    <div className="info flex justify-center gap-10 text-xl pt-6">
+                        <p>Full code on:
+                            <a href="https://github.com/Al1babax/pathfinding_visualization" target="_blank" rel="noopener noreferrer"><span className='ml-2 text-blue-500 border-2 px-1 bg-blue-100 border-blue-500'>Github</span></a>
+                        </p>
+                        <p>For further questions contact by email: <span className='text-blue-600'>sami.viik2@gmail.com</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+
 
     if (grid.length === 0) {
         createGrid();
@@ -356,13 +416,16 @@ export function Home() {
 
 
     return (
-        <div className='bg-slate-600 w-full h-screen flex flex-col items-center'>
+        <div className={`bg-slate-600 w-full h-screen flex flex-col items-center relative`}>
+            <div className={`filter absolute w-full h-full bg-black ${isHelpOpen ? "z-10 opacity-50" : "-z-10"}`}></div>
             <div className="controls w-full h-[100px] bg-slate-500">
                 <div className="flex flex-row h-full w-full justify-center items-center gap-5">
                     <button className={`bg-green-500 w-[100px] h-[50px] ${selectMode === "start" ? "border-4" : ""} rounded`} onClick={() => setSelectMode("start")}>Start</button>
                     <button className={`bg-red-500 w-[100px] h-[50px] ${selectMode === "end" ? "border-4" : ""} rounded`} onClick={() => setSelectMode("end")}>End</button>
                     <button className={`bg-gray-600 w-[100px] h-[50px] ${selectMode === "wall" ? "border-4" : ""} rounded`} onClick={() => setSelectMode("wall")}>Wall</button>
-                    <button className={`bg-blue-500 w-[100px] h-[50px] ${selectMode === "weight" ? "border-4" : ""} rounded`} onClick={() => setSelectMode("weight")}>Weight</button>
+                    {(algorithm === "Dijkstra's algorithm" | algorithm === "A* algorithm") ? 
+                    <button className={`bg-blue-500 w-[100px] h-[50px] ${selectMode === "weight" ? "border-4" : ""} rounded`} onClick={handleWeightClick}>Weight</button> 
+                    : <img src={weightImage} className="" alt=""/>}
                     <button className={`bg-purple-500 w-[100px] h-[50px] ${selectMode === "clear" ? "border-4" : ""} rounded`} onClick={reset}>Clear</button>
                     <button className={`bg-yellow-500 w-[100px] h-[50px] hover:brightness-110 rounded`} onClick={startPathFinding}>Search</button>
                     <div className="dropdown w-[200px] h-[50px] bg-slate-200 relative" onMouseLeave={() => setDropdownOpen(false)}>
@@ -372,7 +435,6 @@ export function Home() {
                         </button>
                         {dropdonwOpen ? dropdownbox : null}
                     </div>
-                    <button className={`bg-slate-400 w-[100px] h-[50px] hover:brightness-110 rounded`} onClick={setupPresetMaze}>Preset</button>
                     <div className="dropdown w-[120px] h-[50px] bg-slate-200 relative" onMouseLeave={() => setDropdownSpeedOpen(false)}>
                         <button className='dropdown w-full h-full  flex justify-center items-center' onClick={() => setDropdownSpeedOpen(!dropdownSpeedOpen)}>
                             <div className="option">Speed: {speed}</div>
@@ -381,6 +443,8 @@ export function Home() {
                         {dropdownSpeedOpen ? speedDropdownbox : null}
                     </div>
                     <button className={`bg-slate-400 w-[200px] h-[50px] hover:brightness-110 rounded`} onClick={generateMaze}>Generate random maze</button>
+                    <button className={`bg-pink-400 w-[100px] h-[50px] hover:brightness-110 rounded z-10`} onClick={() => setIsHelpOpen(!isHelpOpen)}>Help?</button>
+                    {isHelpOpen && helpHtml}
                 </div>
             </div>
             <div className="line bg-black h-1"></div>
@@ -397,6 +461,10 @@ export function Home() {
                     <div className="path flex w-[200px] h-[50px] justify-center items-center gap-3">
                         <div className="path__node bg-gray-500 w-[30px] h-[30px] rounded"></div>
                         <p>Wall</p>
+                    </div>
+                    <div className="path flex w-[200px] h-[50px] justify-center items-center gap-3">
+                        <div className="path__node bg-blue-500 w-[30px] h-[30px] rounded"></div>
+                        <p>Weight</p>
                     </div>
                     <div className="path flex w-[200px] h-[50px] justify-center items-center gap-3 ">
                         <div className="path__node bg-blue-700 w-[30px] h-[30px] rounded"></div>
@@ -428,7 +496,6 @@ export function Home() {
                         <p className='text-yellow-500 text-xl font-bold'>{searchedNodes}</p>
                     </div>
                 </div>
-
             </div>
             <div className="grid grid-rows-20 grid-flow-col gap-[3px] bg-gray-400 mt-10" onMouseLeave={() => setMouseIsPressed(false)}>
                 {true && grid_html}

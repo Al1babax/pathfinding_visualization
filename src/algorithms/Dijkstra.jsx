@@ -25,7 +25,7 @@ export function Dijkstra(props) {
         neighbors.map(neighbor => {
             neighbor.previousNode = node.id
             neighbor.onSearch = true
-            neighbor.distance = node.distance + 1
+            neighbor.distance = node.distance + 1 + (neighbor.isWeight ? 5 : 0)
         })
         searchedNodesInOrder.push(neighbors)
         return neighbors

@@ -43,9 +43,8 @@ export function Astar(props) {
         neighbors.map(neighbor => {
             neighbor.previousNode = node.id
             neighbor.onSearch = true
-            neighbor.distance = node.distance + 1
-            //neighbor.totalDistance = (node.distance + 1) * (heuristic(neighbor, endNode)) // custom weight added to distance to account for heuristic
-            neighbor.totalDistance = heuristic(neighbor, endNode) // custom weight added to distance to account for heuristic
+            neighbor.distance = node.distance + 1 + (neighbor.isWeight ? 5 : 0)
+            neighbor.totalDistance = neighbor.distance + heuristic(neighbor, endNode) // custom weight added to distance to account for heuristic
         })
         onSearchNodesInOrder.push(neighbors)
         return neighbors
@@ -65,7 +64,7 @@ export function Astar(props) {
 
     // While the queue is not empty
     while (queue.length > 0) {
-        // Sort the queue by total distance
+        // Sort the queue by total distance in ascending order
         queue.sort((node1, node2) => node1.totalDistance - node2.totalDistance);
 
         // Get the node with the lowest total distance
@@ -110,6 +109,4 @@ export function Astar(props) {
 
     // Return the visited nodes, shortest path, and nodes on search
     return { visitedNodesInOrder, shortestPathInOrder, onSearchNodesInOrder };
-
-
 }
