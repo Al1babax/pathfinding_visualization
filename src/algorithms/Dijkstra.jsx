@@ -71,5 +71,14 @@ export function Dijkstra(props) {
             searchedNodesInOrder[i][j].isVisited = false
         }
     }
-    return { visitedNodesInOrder, searchedNodesInOrder };
+
+    // Get the shortest path
+    const shortestPathInOrder = [];
+    let currentNode2 = endNode;
+    while (currentNode2 !== startNode) {
+        currentNode2 = grid[currentNode2.previousNode];
+        shortestPathInOrder.push(currentNode2);
+    }
+
+    return { visitedNodesInOrder, shortestPathInOrder, searchedNodesInOrder };
 }

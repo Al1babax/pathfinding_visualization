@@ -1,7 +1,7 @@
 export function DFS(props) {
     const { grid, startNode, endNode } = props;
     const visitedNodesInOrder = []; // visited nodes in order for animation
-    let searchedNodesInOrder = []; // searched nodes in order for animation
+    const searchedNodesInOrder = []; // searched nodes in order for animation
 
     let algoDone = false; // flag to check if algorithm is done
 
@@ -12,37 +12,46 @@ export function DFS(props) {
     function addNodesToStack(node) {
         // add nodes in order of top, right, bottom, left
         // need to check if node is valid first (not a wall, not visited, not out of bounds)
+        let neighbors = [];
         if (!node.isTopNode && !grid[node.id - 1].isWall && visitedNodesInOrder.find(element => element.id === node.id - 1) === undefined && stack.find(element => element.id === node.id - 1) === undefined) {
             stack.push(grid[node.id - 1]);
-            searchedNodesInOrder.push(grid[node.id - 1]);
+            neighbors.push(grid[node.id - 1]);
         }
         if (!node.isRightNode && !grid[node.id + 20].isWall && visitedNodesInOrder.find(element => element.id === node.id + 20) === undefined && stack.find(element => element.id === node.id + 20) === undefined) {
             stack.push(grid[node.id + 20]);
-            searchedNodesInOrder.push(grid[node.id + 20]);
+            neighbors.push(grid[node.id + 20]);
         }
         if (!node.isBottomNode && !grid[node.id + 1].isWall && visitedNodesInOrder.find(element => element.id === node.id + 1) === undefined && stack.find(element => element.id === node.id + 1) === undefined) {
             stack.push(grid[node.id + 1]);
-            searchedNodesInOrder.push(grid[node.id + 1]);
+            neighbors.push(grid[node.id + 1]);
         }
         if (!node.isLeftNode && !grid[node.id - 20].isWall && visitedNodesInOrder.find(element => element.id === node.id - 20) === undefined && stack.find(element => element.id === node.id - 20) === undefined) {
             stack.push(grid[node.id - 20]);
-            searchedNodesInOrder.push(grid[node.id - 20]);
+            neighbors.push(grid[node.id - 20]);
         }
+        // setup neighbors distance, previous node, and add to visited nodes
+        neighbors.map(neighbor => {
+            neighbor.previousNode = node.id
+            neighbor.onSearch = true
+        })
+        searchedNodesInOrder.push(neighbors)
+        return neighbors
     }
 
-    function checkIfNodeIsEnd(node) {
-        if (node.id === endNode.id) {
-            return true;
+    function checkIfNodeIsEnd() {
+        // check if end node is in searched nodes array
+        for (let i = 0; i < searchedNodesInOrder.length; i++) {
+            if (searchedNodesInOrder[i].find(element => element.id === endNode.id) !== undefined) {
+                return true
+            }
         }
-        return false;
     }
 
     let failSafeCounter = 0;
-    let currentNode = [];
-    let prevNode = [];
+    let currentNode = null;
+    let prevNode = null;
 
     while (!algoDone) {
-        console.log(failSafeCounter);
         if (failSafeCounter > 10000) {
             console.log("fail safe counter triggered");
             break;
@@ -52,33 +61,31 @@ export function DFS(props) {
             algoDone = true;
             break;
         }
-        if (visitedNodesInOrder.length === 1) {
-            currentNode = stack.pop();
-            //currentNode = stack.shift();
-        } else {
-            prevNode = currentNode;
-            currentNode = stack.pop(); // get last node in stack
-            //currentNode = stack.shift();
-            grid[currentNode.id].previousNode = prevNode; // set previous node of current node
-        }
 
-        algoDone = checkIfNodeIsEnd(currentNode);
-        if (algoDone) {
-            endNode.previousNode = prevNode;
-            break;
-        }
-
+        currentNode = stack.pop();
+        prevNode = currentNode;
+        visitedNodesInOrder.push(currentNode); // push current node to visited nodes
 
         addNodesToStack(currentNode); // add new nodes to stack around current node
-        visitedNodesInOrder.push({
-            ...currentNode,
-            "currentStack": searchedNodesInOrder,
-        }); // push current node to visited nodes
-        searchedNodesInOrder = []; // reset new nodes to search
+
+        //searchedNodesInOrder = []; // reset new nodes to search
         failSafeCounter++;
+
+        if (checkIfNodeIsEnd()) {
+            // check if end node is in searched nodes array
+            console.log("end node found");
+            endNode.previousNode = prevNode.id;
+            break;
+        }
     }
 
-    let nodesInShortestPathOrder = [...visitedNodesInOrder].reverse(); // nodes in shortest path for animation
+    // Get the shortest path
+    const shortestPathInOrder = [];
+    let currentNode2 = endNode;
+    while (currentNode2 !== startNode) {
+        currentNode2 = grid[currentNode2.previousNode];
+        shortestPathInOrder.push(currentNode2);
+    }
 
-    return { visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder };
+    return { visitedNodesInOrder, shortestPathInOrder, searchedNodesInOrder };
 }

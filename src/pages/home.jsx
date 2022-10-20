@@ -17,7 +17,7 @@ export function Home() {
     const [isPathFound, setIsPathFound] = useState(false);
     const [isPathFinding, setIsPathFinding] = useState(false);
     const [algorithm, setAlgorithm] = useState("Choose algorithm");
-    const [speed, setSpeed] = useState(5);
+    const [speed, setSpeed] = useState(10);
     const [dropdonwOpen, setDropdownOpen] = useState(false);
     const [dropdownSpeedOpen, setDropdownSpeedOpen] = useState(false);
     const [shortestPathLength, setShortestPathLength] = useState(0);
@@ -72,6 +72,8 @@ export function Home() {
         setIsPathFound(false);
         setIsPathFinding(false);
         setShortestPathLength(0);
+        setVisitedNodes(0);
+        setSearchedNodes(0);
         updateGrid();
     }
 
@@ -223,40 +225,6 @@ export function Home() {
     }
 
 
-    function betterAnimate(visitedNodesInOrder, searchedNodesInOrder) {
-        const newGrid = [...grid];
-        for (let i = 0; i < visitedNodesInOrder.length; i++) {
-            setTimeout(() => {
-                for (let x = 0; x < searchedNodesInOrder[i].length; x++) {
-                    newGrid[searchedNodesInOrder[i][x].id].onSearch = true;
-                }
-                const node = visitedNodesInOrder[i];
-                newGrid[node.id].isVisited = true;
-                newGrid[node.id].onSearch = false;
-                setGrid(newGrid);
-                updateGrid();
-            }, speed * i);
-        }
-        // updating all distances and prev nodes from visitedNodesInOrder to grid
-        for (let i = 0; i < visitedNodesInOrder.length; i++) {
-            const node = visitedNodesInOrder[i];
-            newGrid[node.id].distance = node.distance;
-            newGrid[node.id].previousNode = node.previousNode;
-        }
-        setGrid(newGrid);
-        let prevNode = visitedNodesInOrder.pop();
-        for (let i = 0; i <= visitedNodesInOrder[visitedNodesInOrder.length - 1].distance; i++) {
-            setTimeout(() => {
-                newGrid[prevNode.id].isPath = true;
-                newGrid[prevNode.id].isVisited = false;
-                setGrid(newGrid);
-                updateGrid();
-                prevNode = grid[prevNode.previousNode];
-            }, speed * (i * 2 + visitedNodesInOrder.length));
-        }
-    }
-
-
     function bestAnimate(visitedNodesInOrder, shortestPathInOrder, onSearchNodesInOrder) {
         // reset node coloring to default in grid
         for (let i = 0; i < grid.length; i++) {
@@ -304,20 +272,18 @@ export function Home() {
 
 
         if (algorithm === "Deep search algorithm") {
-            const { visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder } = DFS(props);
-            animatePathFinding(visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder);
+            const { visitedNodesInOrder, shortestPathInOrder, searchedNodesInOrder } = DFS(props);
+            bestAnimate(visitedNodesInOrder, shortestPathInOrder, searchedNodesInOrder);
         } else if (algorithm === "Breadth search algorithm") {
             const { visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder } = BFS(props);
             console.log("shortestPath", nodesInShortestPathOrder);
             animatePathFinding(visitedNodesInOrder, nodesInShortestPathOrder, searchedNodesInOrder);
         } else if (algorithm === "Dijkstra's algorithm") {
-            const { visitedNodesInOrder, searchedNodesInOrder } = Dijkstra(props);
-            betterAnimate(visitedNodesInOrder, searchedNodesInOrder);
+            const { visitedNodesInOrder, shortestPathInOrder, searchedNodesInOrder } = Dijkstra(props);
+            // betterAnimate(visitedNodesInOrder, searchedNodesInOrder);
+            bestAnimate(visitedNodesInOrder, shortestPathInOrder, searchedNodesInOrder);
         } else if (algorithm === "A* algorithm") {
             const { visitedNodesInOrder, shortestPathInOrder, onSearchNodesInOrder } = Astar(props);
-            console.log("shortestPath", shortestPathInOrder);
-            console.log("visitedNodesInOrder", visitedNodesInOrder);
-            console.log("onSearchNodesInOrder", onSearchNodesInOrder);
             bestAnimate(visitedNodesInOrder, shortestPathInOrder, onSearchNodesInOrder);
         }
 
@@ -343,7 +309,7 @@ export function Home() {
             <button
                 key={node.id}
                 id={node.id}
-                className={`node ${node.color} w-[30px] h-[30px] ease-in-out duration-[400ms] ${(mouseIsPressed | isRunning) && "hover:scale-125"} ${isRunning && "cursor-not-allowed"}`}
+                className={`node ${node.color} w-[30px] h-[30px] ease-in-out ${selectMode === "wall" ? "duration-[0ms]" : "duration-[400ms]"} ${(mouseIsPressed | isRunning) && "hover:scale-125"} ${isRunning && "cursor-not-allowed"}`}
                 onMouseDown={() => handleMouseDown(node.id)}
                 onMouseUp={() => setMouseIsPressed(false)}
                 onMouseEnter={() => handleMouseEnter(node.id)}
