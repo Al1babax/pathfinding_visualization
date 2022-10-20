@@ -16,6 +16,8 @@ The project is very simple to use. You can click start node, end node and build 
 The project currently supports the following algorithms:
 * Dijkstra
 * A*
+* Depth-first search
+* Breadth-first search
 
 Maze is generated using Prism's algorithm.
 
@@ -23,4 +25,3 @@ Maze is generated using Prism's algorithm.
 * Add more algorithms
 * Add more features
 * Add more documentation
-* Host project online for easier access
