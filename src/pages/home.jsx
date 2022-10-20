@@ -328,7 +328,7 @@ export function Home() {
             </div>
             <div className="area w-full h-full flex justify-center">
                 <div className="content w-5/6 h-5/6 bg-red-0">
-                    <h1 className='text-center font-bold text-3xl'>Introductions</h1>
+                    <h1 className='text-center font-bold text-3xl'>Instructions</h1>
                     <p className='text-xl pt-3'>This is a pathfinding visualizer. It is used to visualize different pathfinding algorithms. The algorithms are implemented in JavaScript. The visualizer is built with React.js and Tailwind CSS.</p>
                     <h1 className='font-bold text-2xl mt-10'>How to use</h1>
                     <ol className='list-decimal'>
@@ -420,14 +420,13 @@ export function Home() {
             <div className={`filter absolute w-full h-full bg-black ${isHelpOpen ? "z-10 opacity-50" : "-z-10"}`}></div>
             <div className="controls w-full h-[100px] bg-slate-500">
                 <div className="flex flex-row h-full w-full justify-center items-center gap-5">
-                    <button className={`bg-green-500 w-[100px] h-[50px] ${selectMode === "start" ? "border-4" : ""} rounded`} onClick={() => setSelectMode("start")}>Start</button>
-                    <button className={`bg-red-500 w-[100px] h-[50px] ${selectMode === "end" ? "border-4" : ""} rounded`} onClick={() => setSelectMode("end")}>End</button>
-                    <button className={`bg-gray-600 w-[100px] h-[50px] ${selectMode === "wall" ? "border-4" : ""} rounded`} onClick={() => setSelectMode("wall")}>Wall</button>
-                    {(algorithm === "Dijkstra's algorithm" | algorithm === "A* algorithm") ? 
-                    <button className={`bg-blue-500 w-[100px] h-[50px] ${selectMode === "weight" ? "border-4" : ""} rounded`} onClick={handleWeightClick}>Weight</button> 
-                    : <img src={weightImage} className="" alt=""/>}
-                    <button className={`bg-purple-500 w-[100px] h-[50px] ${selectMode === "clear" ? "border-4" : ""} rounded`} onClick={reset}>Clear</button>
-                    <button className={`bg-yellow-500 w-[100px] h-[50px] hover:brightness-110 rounded`} onClick={startPathFinding}>Search</button>
+                    <button className={`bg-green-500 w-[100px] h-[50px] ${selectMode === "start" ? "border-4" : ""} rounded hover:brightness-110`} onClick={() => setSelectMode("start")}>Start</button>
+                    <button className={`bg-red-500 w-[100px] h-[50px] ${selectMode === "end" ? "border-4" : ""} rounded hover:brightness-110`} onClick={() => setSelectMode("end")}>End</button>
+                    <button className={`bg-gray-400 w-[100px] h-[50px] ${selectMode === "wall" ? "border-4" : ""} rounded hover:brightness-110`} onClick={() => setSelectMode("wall")}>Wall</button>
+                    {(algorithm === "Dijkstra's algorithm" | algorithm === "A* algorithm") ?
+                        <button className={`bg-blue-500 w-[100px] h-[50px] ${selectMode === "weight" ? "border-4" : ""} rounded hover:brightness-110`} onClick={handleWeightClick}>Weight</button>
+                        : <img src={weightImage} className="" alt="" />}
+                    <button className={`bg-teal-400 w-[200px] h-[50px] hover:brightness-110 rounded`} onClick={generateMaze}>Generate random maze</button>
                     <div className="dropdown w-[200px] h-[50px] bg-slate-200 relative" onMouseLeave={() => setDropdownOpen(false)}>
                         <button className='dropdown w-full h-full  flex justify-center items-center' onClick={() => setDropdownOpen(!dropdonwOpen)}>
                             <div className="option">{algorithm}</div>
@@ -442,7 +441,8 @@ export function Home() {
                         </button>
                         {dropdownSpeedOpen ? speedDropdownbox : null}
                     </div>
-                    <button className={`bg-slate-400 w-[200px] h-[50px] hover:brightness-110 rounded`} onClick={generateMaze}>Generate random maze</button>
+                    <button className={`bg-yellow-500 w-[100px] h-[50px] hover:brightness-110 rounded`} onClick={startPathFinding}>Search</button>
+                    <button className={`bg-purple-500 w-[100px] h-[50px] ${selectMode === "clear" ? "border-4" : ""} rounded hover:brightness-110`} onClick={reset}>Clear</button>
                     <button className={`bg-pink-400 w-[100px] h-[50px] hover:brightness-110 rounded z-10`} onClick={() => setIsHelpOpen(!isHelpOpen)}>Help?</button>
                     {isHelpOpen && helpHtml}
                 </div>
