@@ -1,4 +1,4 @@
-export function Astar(props) {
+export function Astar(props, distanceMeasurement) {
     const { grid, startNode, endNode } = props;
 
     // Initialize new copy of the newGrid
@@ -13,7 +13,16 @@ export function Astar(props) {
         let node1_col = Math.floor(node1.id / 20);
         let node2_row = node2.id % 20;
         let node2_col = Math.floor(node2.id / 20);
-        return Math.abs(node1_row - node2_row) + Math.abs(node1_col - node2_col);
+        // Manhattan distance
+        const manhattanDistance = Math.abs(node1_row - node2_row) + Math.abs(node1_col - node2_col);
+        // Euclidean distance
+        const euclideanDistance = Math.sqrt(Math.pow(node1_row - node2_row, 2) + Math.pow(node1_col - node2_col, 2));
+        // return euclideanDistance;
+        if (distanceMeasurement === "Manhattan") {
+            return manhattanDistance;
+        } else if (distanceMeasurement === "Euclidean") {
+            return euclideanDistance;
+        }
     }
 
     // Initialize arrays for animation
